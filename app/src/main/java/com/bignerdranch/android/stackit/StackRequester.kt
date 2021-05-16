@@ -27,7 +27,7 @@ class StackRequester(listeningFragment: Fragment) {
             .authority(URL_AUTHORITY)
             .appendPath(URL_PATH_1)
             .appendPath(URL_PATH_2)
-            .appendQueryParameter(URL_QUERY_PARAM_PAGE_SIZE, "1")
+            .appendQueryParameter(URL_QUERY_PARAM_PAGE_SIZE, "8")
             .appendQueryParameter(URL_QUERY_PARAM_ORDER, "desc")
             .appendQueryParameter(URL_QUERY_PARAM_SORT, "activity")
             .appendQueryParameter(URL_QUERY_PARAM_SITE, "stackoverflow")
