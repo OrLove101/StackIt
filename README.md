@@ -5,3 +5,6 @@ Used libs:
 * OkHttp
 * Gson
 * Picasso
+
+Also used:
+* CircleImageView
