@@ -2,4 +2,6 @@
     <string name="app_name">StackIt</string>
     <string name="stack_title_label">Title</string>
     <string name="stack_answers_label">Answers: </string>
+    <string name="nothing_to_show_toast">nothing new to show</string>
+    <string name="too_many_requests_toast">too many requests from this IP, try later</string>
 </resources>

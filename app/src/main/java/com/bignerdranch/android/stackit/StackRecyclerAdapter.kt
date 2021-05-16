@@ -40,6 +40,8 @@ class StackViewHolder(private val view: View): RecyclerView.ViewHolder(view) {
     private var mStackImageView: ImageView
     private var mProgressImageView: ProgressBar
 
+    //TODO implement onClickListener interface
+
     init {
         mTitleTextView = view.findViewById(R.id.stack_title_list)
         mAnswerCountTextView = view.findViewById(R.id.stack_answers_list)

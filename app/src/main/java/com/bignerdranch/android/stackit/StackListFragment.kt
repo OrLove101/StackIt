@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import java.lang.NullPointerException
@@ -43,7 +44,10 @@ class StackListFragment : Fragment(), StackRequester.StackRequestResponse {
             this.adapter = mStackAdapter
             this.addItemDecoration(DividerItemDecoration(mStackRecyclerView.context, DividerItemDecoration.VERTICAL))
         }
+
         setRecyclerViewScrollListener()
+
+        setRecyclerViewItemTouchListener()
 
         stackRequester = StackRequester(this)
 
@@ -62,6 +66,29 @@ class StackListFragment : Fragment(), StackRequester.StackRequestResponse {
                 }
             }
         })
+    }
+
+    private fun setRecyclerViewItemTouchListener() {
+        val itemTouchCallback = object : ItemTouchHelper.SimpleCallback(0,
+            ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                return false
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.adapterPosition
+
+                stackList.removeAt(position)
+                mStackRecyclerView.adapter!!.notifyItemRemoved(position)
+            }
+        }
+        val itemTouchHelper = ItemTouchHelper(itemTouchCallback)
+
+        itemTouchHelper.attachToRecyclerView(mStackRecyclerView)
     }
 
     override fun onStart() {
@@ -91,7 +118,6 @@ class StackListFragment : Fragment(), StackRequester.StackRequestResponse {
                     if ( !alreadyHas ) {
                         stackList.add(element)
                         mStackAdapter.notifyItemInserted(mStackAdapter.itemCount)
-                        //TODO make to fetch more items and test it
 
                         hasAtLeastOne = true
                     } else {
@@ -99,16 +125,15 @@ class StackListFragment : Fragment(), StackRequester.StackRequestResponse {
                     }
                 }
                 if ( !hasAtLeastOne ) {
-                    Toast.makeText(this.activity, "nothing new to show",
+                    Toast.makeText(this.activity,
+                        activity?.applicationContext?.getString(R.string.nothing_to_show_toast),
                         Toast.LENGTH_LONG).show()
                 }
             } catch (e: NullPointerException) {
-                Toast.makeText(this.activity, "too many requests from this IP, try later",
+                Toast.makeText(this.activity,
+                    activity?.applicationContext?.getString(R.string.nothing_to_show_toast),
                     Toast.LENGTH_LONG).show()
             }
-            //TODO add this string in app string resources
-
-//            mStackAdapter.notifyItemRangeInserted(mStackAdapter.itemCount, newStackResponse.items.count())
         }
     }
 }
