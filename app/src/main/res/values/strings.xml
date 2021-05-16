@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">StackIt</string>
+    <string name="stack_title_label">Title</string>
+    <string name="stack_answers_label">Answers: </string>
+</resources>
