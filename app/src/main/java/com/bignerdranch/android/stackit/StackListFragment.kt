@@ -1,6 +1,8 @@
 package com.bignerdranch.android.stackit
 
+import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import java.lang.NullPointerException
 
 class StackListFragment : Fragment(), StackRequester.StackRequestResponse {
-    private var stackList = ArrayList<StackResponse.Item>()
+//    private var stackList = ArrayList<StackResponse.Item>()
     private lateinit var mStackRecyclerView: RecyclerView
     private lateinit var mStackAdapter: StackRecyclerAdapter
     private lateinit var stackRequester: StackRequester
@@ -26,7 +28,8 @@ class StackListFragment : Fragment(), StackRequester.StackRequestResponse {
         fun newInstance(): StackListFragment {
             return StackListFragment()
         }
-        private val STACK_LIST_DEBAG = "StackList"
+        private var stackList = ArrayList<StackResponse.Item>()
+        private val TAG = "StackList"
     }
 
     override fun onCreateView(
