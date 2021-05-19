@@ -2,9 +2,7 @@ package com.bignerdranch.android.stackit
 
 import android.net.Uri
 import androidx.fragment.app.Fragment
-import com.google.gson.GsonBuilder
 import okhttp3.*
-import org.json.JSONObject
 import java.io.IOException
 
 class StackRequester(listeningFragment: Fragment) {
@@ -22,17 +20,44 @@ class StackRequester(listeningFragment: Fragment) {
         client = OkHttpClient()
     }
 
-    fun getStack() {
+    fun getRecentStacks() {
         val urlRequest = Uri.Builder().scheme(URL_SCHEME)
             .authority(URL_AUTHORITY)
             .appendPath(URL_PATH_1)
-            .appendPath(URL_PATH_2)
+            .appendPath(URL_QUESTIONS_PATH)
             .appendQueryParameter(URL_QUERY_PARAM_PAGE_SIZE, "8")
             .appendQueryParameter(URL_QUERY_PARAM_ORDER, "desc")
             .appendQueryParameter(URL_QUERY_PARAM_SORT, "activity")
             .appendQueryParameter(URL_QUERY_PARAM_SITE, "stackoverflow")
             .build().toString()
-        val request = Request.Builder().url(urlRequest).build()
+
+        getStack(urlRequest)
+    }
+
+    fun searchStacks(query: String) {
+        if ( lastQuery != query ) {
+            currentPage = 1
+        }
+
+        val urlRequest = Uri.Builder().scheme(URL_SCHEME)
+            .authority(URL_AUTHORITY)
+            .appendPath(URL_PATH_1)
+            .appendPath(URL_SEARCH_PATH)
+            .appendQueryParameter(URL_QUERY_PARAM_PAGE, currentPage.toString())
+            .appendQueryParameter(URL_QUERY_PARAM_PAGE_SIZE, "20")
+            .appendQueryParameter(URL_QUERY_PARAM_ORDER, "desc")
+            .appendQueryParameter(URL_QUERY_PARAM_SORT, "activity")
+            .appendQueryParameter(URL_QUERY_PARAM_TITLE, query)
+            .appendQueryParameter(URL_QUERY_PARAM_SITE, "stackoverflow")
+            .build().toString()
+
+        getStack(urlRequest)
+        currentPage += 1
+        lastQuery = query
+    }
+
+    private fun getStack(url: String) {
+        val request = Request.Builder().url(url).build()
 
         isLoadingdata = true
 
@@ -63,11 +88,17 @@ class StackRequester(listeningFragment: Fragment) {
         private val URL_SCHEME = "https"
         private val URL_AUTHORITY = "api.stackexchange.com"
         private val URL_PATH_1 = "2.2"
-        private val URL_PATH_2 = "questions"
+        private val URL_QUESTIONS_PATH = "questions"
+        private val URL_QUERY_PARAM_PAGE = "page"
         private val URL_QUERY_PARAM_PAGE_SIZE = "pagesize"
         private val URL_QUERY_PARAM_ORDER = "order"
         private val URL_QUERY_PARAM_SORT = "sort"
         private val URL_QUERY_PARAM_SITE = "site"
-        private val STACK_REQUEST_DEBUG = "StackRequest"
+        private val URL_SEARCH_PATH = "search"
+        private val URL_QUERY_PARAM_TITLE = "intitle"
+        private val TAG = "StackRequest"
+
+        private var currentPage = 1
+        private var lastQuery: String? = null
     }
 }

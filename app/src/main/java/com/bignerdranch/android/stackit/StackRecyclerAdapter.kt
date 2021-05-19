@@ -1,5 +1,6 @@
 package com.bignerdranch.android.stackit
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -32,7 +33,7 @@ class StackRecyclerAdapter(private val mStackResponses: List<StackResponse.Item>
     }
 }
 
-class StackViewHolder(private val view: View): RecyclerView.ViewHolder(view) {
+class StackViewHolder(private val view: View): RecyclerView.ViewHolder(view), View.OnClickListener {
     private lateinit var mStackResponse: StackResponse.Item
     private var mTitleTextView: TextView
     private var mAnswerCountTextView: TextView
@@ -46,6 +47,7 @@ class StackViewHolder(private val view: View): RecyclerView.ViewHolder(view) {
         mDateTextView = view.findViewById(R.id.stack_date_list)
         mStackImageView = view.findViewById(R.id.stack_image_list)
         mProgressImageView = view.findViewById(R.id.imageProgressBar)
+        view.setOnClickListener(this)
     }
 
     fun bind(stackResponse: StackResponse.Item) {
@@ -59,8 +61,19 @@ class StackViewHolder(private val view: View): RecyclerView.ViewHolder(view) {
             }
 
             override fun onError(e: Exception?) {
-                TODO("Not yet implemented")
+                //TODO("Not yet implemented")
             }
         })
+    }
+
+    override fun onClick(v: View?) {
+        val context = itemView.context
+        val showStackIntent = StackPageActivity.newIntent(context, mStackResponse.link)
+
+        context.startActivity(showStackIntent)
+    }
+
+    companion object {
+        private val TAG = "StackRecycler"
     }
 }
