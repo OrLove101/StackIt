@@ -3,15 +3,16 @@ package com.bignerdranch.android.stackit
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import android.widget.SearchView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import okhttp3.internal.notify
+import okhttp3.internal.notifyAll
 import java.lang.NullPointerException
 
 class StackListFragment : Fragment(), StackRequester.StackRequestResponse {
@@ -20,16 +21,30 @@ class StackListFragment : Fragment(), StackRequester.StackRequestResponse {
     private lateinit var mStackAdapter: StackRecyclerAdapter
     private lateinit var stackRequester: StackRequester
     private lateinit var mLinearLayoutManager: LinearLayoutManager
-
+    private var mQuery: String? = null
     private val lastVisiblePosition: Int
         get() = mLinearLayoutManager.findLastVisibleItemPosition()
 
     companion object {
+        private var stackList = ArrayList<StackResponse.Item>()
+        private val TAG = "StackList"
+        private val STACK_LIST_QUERY = "stackListQuery"
+        private var isRecentLoaded: Boolean = true
+
         fun newInstance(): StackListFragment {
             return StackListFragment()
         }
-        private var stackList = ArrayList<StackResponse.Item>()
-        private val TAG = "StackList"
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if ( savedInstanceState != null ) {
+            mQuery = savedInstanceState.getString(STACK_LIST_QUERY)
+            if ( mQuery != null ) {
+                activity?.title = mQuery
+            }
+        }
+        setHasOptionsMenu(true)
     }
 
     override fun onCreateView(
@@ -57,6 +72,59 @@ class StackListFragment : Fragment(), StackRequester.StackRequestResponse {
         return view
     }
 
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.fragment_stack_list, menu)
+
+        val searchItem = menu.findItem(R.id.menu_item_search)
+        val searchView = searchItem.actionView as SearchView
+
+        searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                isRecentLoaded = false
+                mQuery = query
+                stackList.clear()
+                stackRequester.searchStacks(query.toString())
+                if ( isAdded ) {
+                    mStackAdapter.notifyDataSetChanged()
+                }
+                searchView.clearFocus()
+                searchView.setQuery("", false)
+                searchView.isIconified = true
+                searchItem.collapseActionView()
+                activity!!.title = query
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                return false
+            }
+        })
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.menu_item_update -> nowLoadRecent()
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun nowLoadRecent() {
+        isRecentLoaded = true
+        stackList.clear()
+        stackRequester.getRecentStacks()
+        if ( isAdded ) {
+            mStackAdapter.notifyDataSetChanged()
+        }
+        activity?.title = activity?.applicationContext?.getString(R.string.app_name)
+        mQuery = null
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(STACK_LIST_QUERY, mQuery)
+    }
+
     private fun setRecyclerViewScrollListener() {
         mStackRecyclerView.addOnScrollListener(object: RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
@@ -65,7 +133,11 @@ class StackListFragment : Fragment(), StackRequester.StackRequestResponse {
                 val totalItemCount = recyclerView.layoutManager!!.itemCount
 
                 if ( !stackRequester.isLoadingdata && totalItemCount == lastVisiblePosition + 1 ) {
-                    requestStack()
+                    if (isRecentLoaded) {
+                        requestStack()
+                    } else {
+                        stackRequester.searchStacks(mQuery.toString())
+                    }
                 }
             }
         })
@@ -102,7 +174,7 @@ class StackListFragment : Fragment(), StackRequester.StackRequestResponse {
     }
 
     private fun requestStack() {
-        stackRequester.getStack()
+        stackRequester.getRecentStacks()
     }
 
     override fun receivedNewStack(newStackResponse: StackResponse) {
