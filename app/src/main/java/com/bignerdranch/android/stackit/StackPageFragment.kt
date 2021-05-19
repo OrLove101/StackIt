@@ -1,11 +1,10 @@
 package com.bignerdranch.android.stackit
 
 import android.app.ProgressDialog
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.ProgressBar
@@ -32,7 +31,20 @@ class StackPageFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
         mStackLink = arguments!!.getString(EXTRA_LINK).toString()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.fragment_stack_webview, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId) {
+            R.id.menu_item_share -> startShareIntent()
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     override fun onCreateView(
@@ -72,5 +84,17 @@ class StackPageFragment : Fragment() {
 
         mStackWebView.saveState(webViewBundle)
         outState.putBundle(WEB_VIEW_STATE_KEY, webViewBundle)
+    }
+
+    private fun startShareIntent() {
+        val sendIntent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, "Look at this:\n $mStackLink")
+            type = "text/plain"
+        }
+        val shareIntent = Intent.createChooser(sendIntent,
+            activity?.applicationContext?.getString(R.string.web_view_chooser_title))
+
+        startActivity(shareIntent)
     }
 }

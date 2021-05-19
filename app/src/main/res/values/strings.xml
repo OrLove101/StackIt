@@ -6,4 +6,6 @@
     <string name="too_many_requests_toast">too many requests from this IP, try later</string>
     <string name="search">search</string>
     <string name="update">update</string>
+    <string name="share">share</string>
+    <string name="web_view_chooser_title">Choose appropriate app to send link</string>
 </resources>
