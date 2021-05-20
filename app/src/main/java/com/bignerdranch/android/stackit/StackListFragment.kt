@@ -206,7 +206,7 @@ class StackListFragment : Fragment(), StackRequester.StackRequestResponse {
                 }
             } catch (e: NullPointerException) {
                 Toast.makeText(this.activity,
-                    activity?.applicationContext?.getString(R.string.nothing_to_show_toast),
+                    activity?.applicationContext?.getString(R.string.too_many_requests_toast),
                     Toast.LENGTH_LONG).show()
             }
         }
