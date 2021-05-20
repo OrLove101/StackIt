@@ -27,6 +27,6 @@ Also there is commented version without GSON library
 
 ## Libraries
 * [OkHttp](url) - For network requests
-* [GSON](url) - For converting between JSON strings and Java objects.
+* [GSON](url) - For converting between JSON strings and Java objects
 * [Picasso](url) - For remote image loading
-* [CircleImageView](url) - For fast circular ImageView perfect for profile images.
+* [CircleImageView](url) - For fast circular ImageView perfect for profile images
