@@ -26,7 +26,7 @@ To achieve this, there are five different components in this app:
 Also there is commented version without GSON library
 
 ## Libraries
-* OkHttp
-* GSON
-* Picasso
-* CircleImageView
+* [OkHttp](url) - For network requests
+* [GSON](url) - For converting between JSON strings and Java objects.
+* [Picasso](url) - For remote image loading
+* [CircleImageView](url) - For fast circular ImageView perfect for profile images.
