@@ -19,20 +19,12 @@ abstract class SingleFragmentActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(getLayoutResId())
 
-//        var fragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
-//        if ( fragment == null ) { //fragment will be null if in fragment_container there`s nothing (books version)
-
-//IF WE DONT PERFORM THIS CHECK, THEN WHEN ACTIVITY THAT ALREADY HAVE A FRAGMENT DESTROYED FRAGMENT STILL PART OF IT
-//SO ONCREATE CALLED AGAIN AND NEW FRAGMENT CREATES AND OVERLAP PREVIOUS
-
-        if ( savedInstanceState == null ) {//This is a way to see if it’s an initial open of the screen. (guide version)
+        if ( savedInstanceState == null ) {
             val fragment = createFragment()
             supportFragmentManager.beginTransaction().apply {
                 add(R.id.fragment_container, fragment)
                 commit()
             }
         }
-
-//        }
     }
 }

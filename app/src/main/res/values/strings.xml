@@ -8,4 +8,6 @@
     <string name="update">update</string>
     <string name="share">share</string>
     <string name="web_view_chooser_title">Choose appropriate app to send link</string>
+    <string name="app_label">app_lable</string>
+    <string name="search_hint">search hint</string>
 </resources>

@@ -11,15 +11,28 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.StackIt">
-        <activity android:name=".StackPageActivity"
-            android:parentActivityName=".MainActivity"></activity>
-        <activity android:name=".MainActivity">
+        <activity
+            android:name=".StackPageActivity"
+            android:parentActivityName=".MainActivity" />
+        <activity android:name=".MainActivity"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
+                <action android:name="android.intent.action.SEARCH" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <meta-data android:name="android.app.searchable"
+                android:resource="@xml/searchable_config"/>
         </activity>
+
+        <provider
+            android:authorities="com.bignerdranch.android.stackit.SuggestionProvider"
+            android:name=".SuggestionProvider"/>
+
+<!--        <service android:name=".SuperService"-->
+<!--            android:description="This description"-->
+<!--            android:exported="true"/>-->
     </application>
 
 </manifest>

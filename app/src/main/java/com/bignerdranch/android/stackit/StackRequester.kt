@@ -6,32 +6,31 @@ import okhttp3.*
 import java.io.IOException
 
 class StackRequester(listeningFragment: Fragment) {
-    interface StackRequestResponse {
-        fun receivedNewStack(newStackResponse: StackResponse)
-    }
-
-    private val client: OkHttpClient
-    private val responseListener: StackRequestResponse
+    private val client: OkHttpClient = OkHttpClient()
+    private val responseListener: StackRequestResponse = listeningFragment as StackRequestResponse
     var isLoadingdata: Boolean = false
         private set
-
-    init {
-        responseListener = listeningFragment as StackRequestResponse
-        client = OkHttpClient()
-    }
+    var resultUpdated: Boolean = false
 
     fun getRecentStacks() {
+        if ( resultUpdated ) {
+            currentPage = 1
+            resultUpdated = false
+        }
+
         val urlRequest = Uri.Builder().scheme(URL_SCHEME)
             .authority(URL_AUTHORITY)
             .appendPath(URL_PATH_1)
             .appendPath(URL_QUESTIONS_PATH)
-            .appendQueryParameter(URL_QUERY_PARAM_PAGE_SIZE, "8")
+            .appendQueryParameter(URL_QUERY_PARAM_PAGE, currentPage.toString())
+            .appendQueryParameter(URL_QUERY_PARAM_PAGE_SIZE, "20")
             .appendQueryParameter(URL_QUERY_PARAM_ORDER, "desc")
             .appendQueryParameter(URL_QUERY_PARAM_SORT, "activity")
             .appendQueryParameter(URL_QUERY_PARAM_SITE, "stackoverflow")
             .build().toString()
 
         getStack(urlRequest)
+        currentPage += 1
     }
 
     fun searchStacks(query: String) {
@@ -84,19 +83,23 @@ class StackRequester(listeningFragment: Fragment) {
 
     }
 
+    interface StackRequestResponse {
+        fun receivedNewStack(newStackResponse: StackResponse)
+    }
+
     companion object {
-        private val URL_SCHEME = "https"
-        private val URL_AUTHORITY = "api.stackexchange.com"
-        private val URL_PATH_1 = "2.2"
-        private val URL_QUESTIONS_PATH = "questions"
-        private val URL_QUERY_PARAM_PAGE = "page"
-        private val URL_QUERY_PARAM_PAGE_SIZE = "pagesize"
-        private val URL_QUERY_PARAM_ORDER = "order"
-        private val URL_QUERY_PARAM_SORT = "sort"
-        private val URL_QUERY_PARAM_SITE = "site"
-        private val URL_SEARCH_PATH = "search"
-        private val URL_QUERY_PARAM_TITLE = "intitle"
-        private val TAG = "StackRequest"
+        private const val URL_SCHEME = "https"
+        private const val URL_AUTHORITY = "api.stackexchange.com"
+        private const val URL_PATH_1 = "2.2"
+        private const val URL_QUESTIONS_PATH = "questions"
+        private const val URL_QUERY_PARAM_PAGE = "page"
+        private const val URL_QUERY_PARAM_PAGE_SIZE = "pagesize"
+        private const val URL_QUERY_PARAM_ORDER = "order"
+        private const val URL_QUERY_PARAM_SORT = "sort"
+        private const val URL_QUERY_PARAM_SITE = "site"
+        private const val URL_SEARCH_PATH = "search"
+        private const val URL_QUERY_PARAM_TITLE = "intitle"
+        private const val TAG = "StackRequest"
 
         private var currentPage = 1
         private var lastQuery: String? = null

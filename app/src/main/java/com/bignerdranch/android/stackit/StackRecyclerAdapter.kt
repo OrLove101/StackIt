@@ -13,12 +13,10 @@ import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
 import java.lang.Exception
 
-class StackRecyclerAdapter(private val mStackResponses: List<StackResponse.Item>): RecyclerView.Adapter<StackViewHolder>() {
+class StackRecyclerAdapter(private val mStackResponses: List<StackResponse.Item>):
+    RecyclerView.Adapter<StackViewHolder>() {
     override fun getItemCount(): Int {
-        if ( mStackResponses.isNotEmpty() ) {
-            return mStackResponses.size
-        }
-        return 0
+        return mStackResponses.size
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StackViewHolder {
@@ -35,18 +33,13 @@ class StackRecyclerAdapter(private val mStackResponses: List<StackResponse.Item>
 
 class StackViewHolder(private val view: View): RecyclerView.ViewHolder(view), View.OnClickListener {
     private lateinit var mStackResponse: StackResponse.Item
-    private var mTitleTextView: TextView
-    private var mAnswerCountTextView: TextView
-    private var mDateTextView: TextView
-    private var mStackImageView: ImageView
-    private var mProgressImageView: ProgressBar
+    private var mTitleTextView: TextView = view.findViewById(R.id.stack_title_list)
+    private var mAnswerCountTextView: TextView = view.findViewById(R.id.stack_answers_list)
+    private var mDateTextView: TextView = view.findViewById(R.id.stack_date_list)
+    private var mStackImageView: ImageView = view.findViewById(R.id.stack_image_list)
+    private var mProgressImageView: ProgressBar = view.findViewById(R.id.imageProgressBar)
 
     init {
-        mTitleTextView = view.findViewById(R.id.stack_title_list)
-        mAnswerCountTextView = view.findViewById(R.id.stack_answers_list)
-        mDateTextView = view.findViewById(R.id.stack_date_list)
-        mStackImageView = view.findViewById(R.id.stack_image_list)
-        mProgressImageView = view.findViewById(R.id.imageProgressBar)
         view.setOnClickListener(this)
     }
 

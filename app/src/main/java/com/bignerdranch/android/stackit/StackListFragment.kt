@@ -1,7 +1,11 @@
 package com.bignerdranch.android.stackit
 
+import android.app.SearchManager
+import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.provider.SearchRecentSuggestions
 import android.util.Log
 import android.view.*
 import android.widget.SearchView
@@ -11,16 +15,18 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import okhttp3.internal.notify
 import okhttp3.internal.notifyAll
 import java.lang.NullPointerException
 
 class StackListFragment : Fragment(), StackRequester.StackRequestResponse {
-//    private var stackList = ArrayList<StackResponse.Item>()
     private lateinit var mStackRecyclerView: RecyclerView
     private lateinit var mStackAdapter: StackRecyclerAdapter
     private lateinit var stackRequester: StackRequester
     private lateinit var mLinearLayoutManager: LinearLayoutManager
+    private lateinit var swipeContainer: SwipeRefreshLayout
+    private var searchView: SearchView? = null
     private var mQuery: String? = null
     private val lastVisiblePosition: Int
         get() = mLinearLayoutManager.findLastVisibleItemPosition()
@@ -36,6 +42,10 @@ class StackListFragment : Fragment(), StackRequester.StackRequestResponse {
         }
     }
 
+    fun onNewIntent(intent: Intent) {
+        handleSearchIntent(intent)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if ( savedInstanceState != null ) {
@@ -45,6 +55,22 @@ class StackListFragment : Fragment(), StackRequester.StackRequestResponse {
             }
         }
         setHasOptionsMenu(true)
+        activity?.intent?.let { handleSearchIntent(it) }
+    }
+
+    private fun handleSearchIntent(intent: Intent) {
+        if ( Intent.ACTION_SEARCH == intent.action ) {
+            intent.extras?.get(SearchManager.QUERY)?.also { query ->
+                isRecentLoaded = false
+                mQuery = query.toString()
+                stackList.clear()
+                stackRequester.searchStacks(query.toString())
+                activity!!.title = query.toString()
+                if ( isAdded ) {
+                    mStackAdapter.notifyDataSetChanged()
+                }
+            }
+        }
     }
 
     override fun onCreateView(
@@ -56,11 +82,22 @@ class StackListFragment : Fragment(), StackRequester.StackRequestResponse {
 
         mStackAdapter = StackRecyclerAdapter(stackList)
         mStackRecyclerView = view.findViewById(R.id.stack_recycler_view)
-        mLinearLayoutManager =  LinearLayoutManager(this.activity, LinearLayoutManager.VERTICAL, false)
+        mLinearLayoutManager =  LinearLayoutManager(this.activity, LinearLayoutManager.VERTICAL,
+            false)
         mStackRecyclerView.apply {
             this.layoutManager = mLinearLayoutManager
             this.adapter = mStackAdapter
-            this.addItemDecoration(DividerItemDecoration(mStackRecyclerView.context, DividerItemDecoration.VERTICAL))
+            this.addItemDecoration(DividerItemDecoration(mStackRecyclerView.context,
+                DividerItemDecoration.VERTICAL))
+        }
+
+        swipeContainer = view.findViewById(R.id.stack_list_swipe_container)
+        swipeContainer.setOnRefreshListener {
+            if ( isRecentLoaded ) {
+                nowLoadRecent()
+            } else {
+                stackRequester.searchStacks(mQuery.toString())
+            }
         }
 
         setRecyclerViewScrollListener()
@@ -76,10 +113,13 @@ class StackListFragment : Fragment(), StackRequester.StackRequestResponse {
         super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.fragment_stack_list, menu)
 
+        val searchManager = activity?.getSystemService(Context.SEARCH_SERVICE) as SearchManager
         val searchItem = menu.findItem(R.id.menu_item_search)
-        val searchView = searchItem.actionView as SearchView
+        searchView = (searchItem.actionView as SearchView).apply {
+            setSearchableInfo(searchManager.getSearchableInfo(activity?.componentName))
+        }
 
-        searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
+        searchView!!.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 isRecentLoaded = false
                 mQuery = query
@@ -88,11 +128,14 @@ class StackListFragment : Fragment(), StackRequester.StackRequestResponse {
                 if ( isAdded ) {
                     mStackAdapter.notifyDataSetChanged()
                 }
-                searchView.clearFocus()
-                searchView.setQuery("", false)
-                searchView.isIconified = true
+                searchView!!.clearFocus()
+                searchView!!.setQuery("", false)
+                searchView!!.isIconified = true
                 searchItem.collapseActionView()
                 activity!!.title = query
+
+                SearchRecentSuggestions(requireContext(), SuggestionProvider.AUTHORITY, SuggestionProvider.MODE)
+                    .saveRecentQuery(query, null)
                 return true
             }
 
@@ -111,8 +154,13 @@ class StackListFragment : Fragment(), StackRequester.StackRequestResponse {
 
     private fun nowLoadRecent() {
         isRecentLoaded = true
+
         stackList.clear()
+
+        stackRequester.resultUpdated = true
+
         stackRequester.getRecentStacks()
+
         if ( isAdded ) {
             mStackAdapter.notifyDataSetChanged()
         }
@@ -179,31 +227,12 @@ class StackListFragment : Fragment(), StackRequester.StackRequestResponse {
 
     override fun receivedNewStack(newStackResponse: StackResponse) {
         this.activity?.runOnUiThread {
-            var alreadyHas: Boolean = false
-            var hasAtLeastOne: Boolean = false
-
             try {
                 for ( element in newStackResponse.items ) {
-                    for ( elem in stackList ) {
-                        if ( elem.link == element.link ) {
-                            alreadyHas = true
-                            break
-                        }
-                    }
-                    if ( !alreadyHas ) {
-                        stackList.add(element)
-                        mStackAdapter.notifyItemInserted(mStackAdapter.itemCount)
-
-                        hasAtLeastOne = true
-                    } else {
-                        alreadyHas = false
-                    }
+                    stackList.add(element)
+                    mStackAdapter.notifyItemInserted(mStackAdapter.itemCount)
                 }
-                if ( !hasAtLeastOne ) {
-                    Toast.makeText(this.activity,
-                        activity?.applicationContext?.getString(R.string.nothing_to_show_toast),
-                        Toast.LENGTH_LONG).show()
-                }
+                swipeContainer.isRefreshing = false
             } catch (e: NullPointerException) {
                 Toast.makeText(this.activity,
                     activity?.applicationContext?.getString(R.string.too_many_requests_toast),

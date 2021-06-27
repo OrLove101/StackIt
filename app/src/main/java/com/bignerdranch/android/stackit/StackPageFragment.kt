@@ -1,6 +1,9 @@
 package com.bignerdranch.android.stackit
 
 import android.app.ProgressDialog
+import android.app.Service
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -95,6 +98,8 @@ class StackPageFragment : Fragment() {
         val shareIntent = Intent.createChooser(sendIntent,
             activity?.applicationContext?.getString(R.string.web_view_chooser_title))
 
-        startActivity(shareIntent)
+        if ( sendIntent.resolveActivity(activity!!.packageManager) != null ) {
+            startActivity(shareIntent)
+        }
     }
 }
